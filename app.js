@@ -1,33 +1,28 @@
-// ATENCIÓN: Reemplazá esta URL por la que te dio Google Apps Script en el paso anterior
 const API_URL = "https://script.google.com/macros/s/AKfycbwP2oBTiNHc5_OQYKWWNAMFBkzk3TlrVSTtVeDa5baVvrHFYTdvb1P11XfElDCAQb_V/exec"; 
 
-// Guardamos todo el perfil del estudiante en memoria
+// Guardamos el perfil
 let usuarioActual = {
     nombre: "",
     apellido: "",
     dni: ""
 };
 
-// 1. Registrar el Service Worker para la PWA
+// 1. Inicializar OneSignal (Debe ir suelto, arriba de todo)
+window.OneSignalDeferred = window.OneSignalDeferred || [];
+OneSignalDeferred.push(function(OneSignal) {
+  OneSignal.init({
+    appId: "c1945570-4b80-4939-99c1-b56ef9b7802a", 
+  });
+});
+
+// 2. Registrar el Service Worker para la PWA
 if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('sw.js')
       .then(() => console.log('Service Worker registrado correctamente.'))
       .catch(err => console.error('Error al registrar SW:', err));
 }
 
-// 2. Solicitar permisos de notificación (Alertas)
-function pedirPermisoNotificaciones() {
-    if ('Notification' in window && navigator.serviceWorker) {
-        Notification.requestPermission().then(permission => {
-            if (permission === 'granted') {
-                console.log('¡Permiso de notificaciones concedido!');
-                // Acá a futuro conectaremos la suscripción push
-            }
-        });
-    }
-}
-
-// 3. Lógica de validación e Ingreso (Nombre, Apellido y DNI)
+// 3. Lógica de validación e Ingreso 
 function validarNombre_ApellidoDNI() {
     const nombre = document.getElementById('nombreInput').value.trim();
     const apellido = document.getElementById('apellidoInput').value.trim();
@@ -40,13 +35,11 @@ function validarNombre_ApellidoDNI() {
         document.getElementById('login-section').style.display = 'none';
         document.getElementById('viajes-section').style.display = 'block';
         
-   // Inicializar OneSignal
-window.OneSignalDeferred = window.OneSignalDeferred || [];
-OneSignalDeferred.push(function(OneSignal) {
-  OneSignal.init({
-    appId: "c1945570-4b80-4939-99c1-b56ef9b7802a", // Pegá tu App ID de OneSignal acá
-  });
-});
+        cargarViajesDesdeAPI(); // Llamamos a la API para mostrar los viajes
+    } else {
+        alert("Por favor, completá tu Nombre, Apellido y un DNI válido.");
+    }
+}
 
 // 4. Traer los viajes desde Google Sheets (GET)
 async function cargarViajesDesdeAPI() {
@@ -86,7 +79,7 @@ function renderizarViajes(viajes) {
     });
 }
 
-// 6. Enviar la reserva a Google Sheets (POST) con todos los datos
+// 6. Enviar la reserva a Google Sheets (POST)
 async function reservar(idViaje) {
     alert("Procesando tu reserva, por favor esperá...");
     
@@ -106,7 +99,7 @@ async function reservar(idViaje) {
         const resultado = await respuesta.json();
         if(resultado.status === "éxito") {
             alert("¡Asiento reservado con éxito! Recordá cancelar si no vas a viajar.");
-            cargarViajesDesdeAPI(); // Recarga la lista para actualizar los cupos visualmente
+            cargarViajesDesdeAPI(); // Recarga la lista
         }
     } catch (error) {
         console.error("Error al guardar reserva:", error);

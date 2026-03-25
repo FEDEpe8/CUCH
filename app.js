@@ -1,5 +1,5 @@
 // ATENCIÓN: Reemplazá esta URL por la que te dio Google Apps Script en el paso anterior
-const API_URL = "https://script.google.com/macros/s/AKfycbytD9KLzEIcI0TgGMwp0xehuIn3kZ8b6MrXpSZ0DAmaEo4Tj5x4spE5GlALVBxPc-7J/exec"; 
+const API_URL = "https://script.google.com/macros/s/AKfycbwP2oBTiNHc5_OQYKWWNAMFBkzk3TlrVSTtVeDa5baVvrHFYTdvb1P11XfElDCAQb_V/exec"; 
 
 // Guardamos todo el perfil del estudiante en memoria
 let usuarioActual = {

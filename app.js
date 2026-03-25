@@ -1,7 +1,12 @@
 // ATENCIÓN: Reemplazá esta URL por la que te dio Google Apps Script en el paso anterior
 const API_URL = "https://script.google.com/macros/s/AKfycbytD9KLzEIcI0TgGMwp0xehuIn3kZ8b6MrXpSZ0DAmaEo4Tj5x4spE5GlALVBxPc-7J/exec"; 
 
-let dniUsuarioActual = "";
+// Guardamos todo el perfil del estudiante en memoria
+let usuarioActual = {
+    nombre: "",
+    apellido: "",
+    dni: ""
+};
 
 // 1. Registrar el Service Worker para la PWA
 if ('serviceWorker' in navigator) {
@@ -16,24 +21,29 @@ function pedirPermisoNotificaciones() {
         Notification.requestPermission().then(permission => {
             if (permission === 'granted') {
                 console.log('¡Permiso de notificaciones concedido!');
-                // suscribirUsuarioAPush(); // Esto lo activaremos cuando armemos el backend de notificaciones
+                // Acá a futuro conectaremos la suscripción push
             }
         });
     }
 }
 
-// 3. Lógica de validación e Ingreso
-function validarDNI() {
-    const dni = document.getElementById('dniInput').value;
-    if(dni.length >= 7) {
-        dniUsuarioActual = dni; // Guardamos el DNI en memoria
+// 3. Lógica de validación e Ingreso (Nombre, Apellido y DNI)
+function validarNombre_ApellidoDNI() {
+    const nombre = document.getElementById('nombreInput').value.trim();
+    const apellido = document.getElementById('apellidoInput').value.trim();
+    const dni = document.getElementById('dniInput').value.trim();
+
+    if(nombre !== "" && apellido !== "" && dni.length >= 7) {
+        // Guardamos los datos en memoria
+        usuarioActual = { nombre: nombre, apellido: apellido, dni: dni }; 
+        
         document.getElementById('login-section').style.display = 'none';
         document.getElementById('viajes-section').style.display = 'block';
         
         pedirPermisoNotificaciones(); // Pedimos permiso para alertas al entrar
         cargarViajesDesdeAPI(); // Buscamos los viajes reales en Sheets
     } else {
-        alert("Por favor, ingresá un DNI válido.");
+        alert("Por favor, completá tu Nombre, Apellido y un DNI válido.");
     }
 }
 
@@ -75,13 +85,15 @@ function renderizarViajes(viajes) {
     });
 }
 
-// 6. Enviar la reserva a Google Sheets (POST)
+// 6. Enviar la reserva a Google Sheets (POST) con todos los datos
 async function reservar(idViaje) {
     alert("Procesando tu reserva, por favor esperá...");
     
     const datosReserva = {
         idViaje: idViaje,
-        dni: dniUsuarioActual
+        dni: usuarioActual.dni,
+        nombre: usuarioActual.nombre,
+        apellido: usuarioActual.apellido
     };
 
     try {

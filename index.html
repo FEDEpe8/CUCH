@@ -22,11 +22,13 @@
 <div class="container">
     <h1>🚌 Viajes Estudiantiles</h1>
     
-    <div id="login-section">
+   <div id="login-section">
         <h2>Validar Identidad</h2>
-        <p>Ingresá tu DNI para ver los viajes disponibles.</p>
-        <input type="number" id="dniInput" placeholder="Ej: 40123456">
-        <button class="btn" onclick="validarDNI()">Ingresar</button>
+        <p>Ingresá tus datos para ver los viajes disponibles.</p>
+        <input type="text" id="nombreInput" placeholder="Tu Nombre">
+        <input type="text" id="apellidoInput" placeholder="Tu Apellido">
+        <input type="number" id="dniInput" placeholder="Tu DNI (Ej: 40123456)">
+        <button class="btn" onclick="validarNombre_ApellidoDNI()">Ingresar</button>
     </div>
 
     <div id="viajes-section">

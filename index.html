@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Transporte Estudiantil Chascomús</title>
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#0056b3">
+    <style>
+        body { font-family: Arial, sans-serif; background-color: #f4f4f9; margin: 0; padding: 20px; }
+        .container { max-width: 600px; margin: auto; background: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
+        h1, h2 { color: #333; text-align: center; }
+        .viaje-card { border: 1px solid #ddd; padding: 15px; margin-bottom: 10px; border-radius: 8px; }
+        .btn { background: #0056b3; color: white; border: none; padding: 10px 15px; border-radius: 5px; cursor: pointer; width: 100%; font-size: 16px; margin-top: 10px;}
+        .btn:disabled { background: #ccc; cursor: not-allowed; }
+        input { width: 95%; padding: 10px; margin-bottom: 15px; border: 1px solid #ccc; border-radius: 5px; }
+        #viajes-section { display: none; } /* Se oculta hasta validar DNI */
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>🚌 Viajes Estudiantiles</h1>
+    
+    <div id="login-section">
+        <h2>Validar Identidad</h2>
+        <p>Ingresá tu DNI para ver los viajes disponibles.</p>
+        <input type="number" id="dniInput" placeholder="Ej: 40123456">
+        <button class="btn" onclick="validarDNI()">Ingresar</button>
+    </div>
+
+    <div id="viajes-section">
+        <h2>Próximas Salidas</h2>
+        <div id="lista-viajes"></div>
+    </div>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>

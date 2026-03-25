@@ -1,9 +1,9 @@
-const CACHE_NAME = 'viajes-estudiantiles-v2';
+const CACHE_NAME = 'viajes-estudiantiles-v2'; // Subí la versión para forzar la actualización
 const urlsToCache = [
-  '/',
-  '/index.html',
-  '/app.js',
-  '/manifest.json'
+  './',
+  './index.html',
+  './app.js',
+  './manifest.json'
 ];
 
 self.addEventListener('install', event => {

@@ -1,4 +1,4 @@
-const CACHE_NAME = 'viajes-estudiantiles-v3'; // Subí la versión
+const CACHE_NAME = 'viajes-estudiantiles-v4'; // Subí la versión
 const urlsToCache = [
   './',
   './index.html',

@@ -1,13 +1,13 @@
 const API_URL = "https://script.google.com/macros/s/AKfycbwjHAaoMT5lzv8V6JF-2eAI8tb7MX6nSDF5-xh9jBy9kFYyaQW9iv5m1JyY4HvHFQ4m/exec"; 
 
-// Guardamos el perfil
+// Guardamos el perfil del estudiante en memoria
 let usuarioActual = {
     nombre: "",
     apellido: "",
     dni: ""
 };
 
-// 1. Inicializar OneSignal (Debe ir suelto, arriba de todo)
+// 1. Inicializar OneSignal
 window.OneSignalDeferred = window.OneSignalDeferred || [];
 OneSignalDeferred.push(function(OneSignal) {
   OneSignal.init({
@@ -41,13 +41,14 @@ function validarNombre_ApellidoDNI() {
     }
 }
 
-// 4. Traer los viajes desde Google Sheets (GET)
+// 4. Traer los viajes (Ahora le mandamos el DNI para saber si ya reservó)
 async function cargarViajesDesdeAPI() {
     const contenedor = document.getElementById('lista-viajes');
     contenedor.innerHTML = '<p>Cargando viajes disponibles...</p>';
 
     try {
-        const respuesta = await fetch(API_URL);
+        // Fetch con el DNI en la URL
+        const respuesta = await fetch(`${API_URL}?dni=${usuarioActual.dni}`);
         const viajesReales = await respuesta.json();
         renderizarViajes(viajesReales);
     } catch (error) {
@@ -56,7 +57,7 @@ async function cargarViajesDesdeAPI() {
     }
 }
 
-// 5. Mostrar los viajes en pantalla
+// 5. Mostrar los viajes (Con botón dinámico de Cancelar o Reservar)
 function renderizarViajes(viajes) {
     const contenedor = document.getElementById('lista-viajes');
     contenedor.innerHTML = '';
@@ -65,44 +66,58 @@ function renderizarViajes(viajes) {
         const card = document.createElement('div');
         card.className = 'viaje-card';
         
-        const hayLugar = viaje.Cupos_Disponibles > 0;
-        const textoBoton = hayLugar ? 'Reservar Asiento' : 'Sin Cupo';
+        let botonHTML = '';
+        
+        // Si el estudiante ya tiene este viaje reservado, mostramos Cancelar
+        if (viaje.yaReservado) {
+            botonHTML = `<button class="btn" style="background-color: #dc3545;" onclick="cancelarReserva(${viaje.ID})">❌ Cancelar Mi Reserva</button>`;
+        } else {
+            // Si no lo tiene reservado, mostramos la opción normal
+            const hayLugar = viaje.Cupos_Disponibles > 0;
+            const textoBoton = hayLugar ? 'Reservar Asiento' : 'Sin Cupo';
+            botonHTML = `<button class="btn" ${!hayLugar ? 'disabled' : ''} onclick="reservar(${viaje.ID})">${textoBoton}</button>`;
+        }
         
         card.innerHTML = `
             <h3>📅 Salida: ${viaje.Fecha}</h3>
             <p><strong>Regreso:</strong> ${viaje.Regreso}</p>
             <p><strong>Cupos disponibles:</strong> ${viaje.Cupos_Disponibles} de ${viaje.Cupos_Totales}</p>
-            <button class="btn" ${!hayLugar ? 'disabled' : ''} 
-                onclick="reservar(${viaje.ID})">${textoBoton}</button>
+            ${botonHTML}
         `;
         contenedor.appendChild(card);
     });
 }
 
-// 6. Enviar la reserva a Google Sheets (POST)
+// 6. Enviar la reserva
 async function reservar(idViaje) {
     alert("Procesando tu reserva, por favor esperá...");
-    
-    const datosReserva = {
-        idViaje: idViaje,
-        dni: usuarioActual.dni,
-        nombre: usuarioActual.nombre,
-        apellido: usuarioActual.apellido
-    };
+    const datosReserva = { accion: 'reservar', idViaje: idViaje, dni: usuarioActual.dni, nombre: usuarioActual.nombre, apellido: usuarioActual.apellido };
+    enviarPost(datosReserva, "¡Asiento reservado con éxito! Recordá cancelar si no vas a viajar.");
+}
 
+// 7. Cancelar la reserva
+async function cancelarReserva(idViaje) {
+    if(confirm("¿Estás seguro que querés cancelar tu viaje y liberar el asiento?")) {
+        alert("Procesando cancelación...");
+        const datosCancelacion = { accion: 'cancelar', idViaje: idViaje, dni: usuarioActual.dni };
+        enviarPost(datosCancelacion, "Reserva cancelada. ¡Gracias por ceder tu lugar!");
+    }
+}
+
+// 8. Función auxiliar para enviar peticiones POST al servidor
+async function enviarPost(datos, mensajeExito) {
     try {
         const respuesta = await fetch(API_URL, {
             method: 'POST',
-            body: JSON.stringify(datosReserva)
+            body: JSON.stringify(datos)
         });
-        
         const resultado = await respuesta.json();
         if(resultado.status === "éxito") {
-            alert("¡Asiento reservado con éxito! Recordá cancelar si no vas a viajar.");
-            cargarViajesDesdeAPI(); // Recarga la lista
+            alert(mensajeExito);
+            cargarViajesDesdeAPI(); // Recarga la pantalla para actualizar los botones y cupos
         }
     } catch (error) {
-        console.error("Error al guardar reserva:", error);
-        alert("Hubo un error al reservar. Revisa tu conexión a internet.");
+        console.error("Error:", error);
+        alert("Hubo un error de conexión.");
     }
 }

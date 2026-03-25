@@ -40,12 +40,13 @@ function validarNombre_ApellidoDNI() {
         document.getElementById('login-section').style.display = 'none';
         document.getElementById('viajes-section').style.display = 'block';
         
-        pedirPermisoNotificaciones(); // Pedimos permiso para alertas al entrar
-        cargarViajesDesdeAPI(); // Buscamos los viajes reales en Sheets
-    } else {
-        alert("Por favor, completá tu Nombre, Apellido y un DNI válido.");
-    }
-}
+   // Inicializar OneSignal
+window.OneSignalDeferred = window.OneSignalDeferred || [];
+OneSignalDeferred.push(function(OneSignal) {
+  OneSignal.init({
+    appId: "c1945570-4b80-4939-99c1-b56ef9b7802a", // Pegá tu App ID de OneSignal acá
+  });
+});
 
 // 4. Traer los viajes desde Google Sheets (GET)
 async function cargarViajesDesdeAPI() {

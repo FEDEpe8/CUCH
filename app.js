@@ -1,5 +1,5 @@
 // ATENCIÓN: Pegá tu URL de Google Apps Script acá
-const API_URL = "https://script.google.com/macros/s/AKfycbx65xj0377gGxwfrWMS_Erv4IU2UnjBpbpnOFQJkuTUXaMBXP15IaxNM4KTXe8xoM0/exec"; 
+const API_URL = "https://script.google.com/macros/s/AKfycbwYE4XHonRMYxR9F9MtxBQzdC1c9XagrhiJXWLYiKyNfc4jr9siD4CmzGsiSKHFJ6qn/exec"; 
 
 let usuarioActual = {
     nombre: "",

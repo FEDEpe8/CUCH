@@ -1,10 +1,11 @@
-const API_URL = "https://script.google.com/macros/s/AKfycbwP2oBTiNHc5_OQYKWWNAMFBkzk3TlrVSTtVeDa5baVvrHFYTdvb1P11XfElDCAQb_V/exec"; 
+// ATENCIÓN: Pegá tu URL de Google Apps Script acá
+const API_URL = "https://script.google.com/macros/s/AKfycbx65xj0377gGxwfrWMS_Erv4IU2UnjBpbpnOFQJkuTUXaMBXP15IaxNM4KTXe8xoM0/exec"; 
 
-// Guardamos el perfil del estudiante en memoria
 let usuarioActual = {
     nombre: "",
     apellido: "",
-    dni: ""
+    dni: "",
+    telefono: ""
 };
 
 // 1. Inicializar OneSignal
@@ -15,39 +16,37 @@ OneSignalDeferred.push(function(OneSignal) {
   });
 });
 
-// 2. Registrar el Service Worker para la PWA
+// 2. Registrar el Service Worker
 if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('sw.js')
-      .then(() => console.log('Service Worker registrado correctamente.'))
+      .then(() => console.log('Service Worker registrado.'))
       .catch(err => console.error('Error al registrar SW:', err));
 }
 
-// 3. Lógica de validación e Ingreso 
-function validarNombre_ApellidoDNI() {
+// 3. Lógica de validación (Pide los 4 datos)
+function validarDatos() {
     const nombre = document.getElementById('nombreInput').value.trim();
     const apellido = document.getElementById('apellidoInput').value.trim();
     const dni = document.getElementById('dniInput').value.trim();
+    const telefono = document.getElementById('telefonoInput').value.trim();
 
-    if(nombre !== "" && apellido !== "" && dni.length >= 7) {
-        // Guardamos los datos en memoria
-        usuarioActual = { nombre: nombre, apellido: apellido, dni: dni }; 
+    if(nombre !== "" && apellido !== "" && dni.length >= 7 && telefono.length >= 8) {
+        usuarioActual = { nombre: nombre, apellido: apellido, dni: dni, telefono: telefono }; 
         
         document.getElementById('login-section').style.display = 'none';
         document.getElementById('viajes-section').style.display = 'block';
-        
-        cargarViajesDesdeAPI(); // Llamamos a la API para mostrar los viajes
+        cargarViajesDesdeAPI(); 
     } else {
-        alert("Por favor, completá tu Nombre, Apellido y un DNI válido.");
+        alert("Por favor, completá todos tus datos correctamente (DNI y Teléfono válidos).");
     }
 }
 
-// 4. Traer los viajes (Ahora le mandamos el DNI para saber si ya reservó)
+// 4. Traer los viajes
 async function cargarViajesDesdeAPI() {
     const contenedor = document.getElementById('lista-viajes');
     contenedor.innerHTML = '<p>Cargando viajes disponibles...</p>';
 
     try {
-        // Fetch con el DNI en la URL
         const respuesta = await fetch(`${API_URL}?dni=${usuarioActual.dni}`);
         const viajesReales = await respuesta.json();
         renderizarViajes(viajesReales);
@@ -57,12 +56,12 @@ async function cargarViajesDesdeAPI() {
     }
 }
 
-// 5. Mostrar los viajes (Con límites de fechas y botón dinámico)
+// 5. Mostrar los viajes (Bloquea cancelaciones si ya cerró)
 function renderizarViajes(viajes) {
     const contenedor = document.getElementById('lista-viajes');
     contenedor.innerHTML = '';
 
-    const ahora = new Date(); // Obtenemos la fecha y hora exacta de este momento
+    const ahora = new Date();
 
     viajes.forEach(viaje => {
         const card = document.createElement('div');
@@ -70,9 +69,9 @@ function renderizarViajes(viajes) {
         
         let botonHTML = '';
         let estaAbierto = true;
+        let yaCerro = false; 
         let mensajeBloqueo = "";
 
-        // Verificamos si hay fecha de INICIO y si todavía no llegamos
         if (viaje.Inicio_Inscripcion) {
             const fechaInicio = new Date(viaje.Inicio_Inscripcion);
             if (ahora < fechaInicio) {
@@ -81,24 +80,25 @@ function renderizarViajes(viajes) {
             }
         }
 
-        // Verificamos si hay fecha de CIERRE y si ya nos pasamos
         if (viaje.Cierre_Inscripcion) {
             const fechaCierre = new Date(viaje.Cierre_Inscripcion);
             if (ahora > fechaCierre) {
                 estaAbierto = false;
+                yaCerro = true; 
                 mensajeBloqueo = "🔒 Inscripción Cerrada";
             }
         }
         
-        // Lógica de los botones según el estado
         if (viaje.yaReservado) {
-            // Si ya reservó, siempre le dejamos el botón de cancelar por si se baja a último minuto
-            botonHTML = `<button class="btn" style="background-color: #dc3545;" onclick="cancelarReserva(${viaje.ID})">❌ Cancelar Mi Reserva</button>`;
+            if (yaCerro) {
+                // Bloqueamos la cancelación
+                botonHTML = `<button class="btn" disabled style="background-color: #6c757d;">🔒 Viaje Cerrado (No se puede cancelar)</button>`;
+            } else {
+                botonHTML = `<button class="btn" style="background-color: #dc3545;" onclick="cancelarReserva(${viaje.ID})">❌ Cancelar Mi Reserva</button>`;
+            }
         } else if (!estaAbierto) {
-            // Si la inscripción no está abierta (es futura o ya cerró), mostramos el botón gris desactivado
             botonHTML = `<button class="btn" disabled>${mensajeBloqueo}</button>`;
         } else {
-            // Si estamos dentro de la fecha, comprobamos los cupos normalmente
             const hayLugar = viaje.Cupos_Disponibles > 0;
             const textoBoton = hayLugar ? 'Reservar Asiento' : 'Sin Cupo';
             botonHTML = `<button class="btn" ${!hayLugar ? 'disabled' : ''} onclick="reservar(${viaje.ID})">${textoBoton}</button>`;
@@ -117,7 +117,14 @@ function renderizarViajes(viajes) {
 // 6. Enviar la reserva
 async function reservar(idViaje) {
     alert("Procesando tu reserva, por favor esperá...");
-    const datosReserva = { accion: 'reservar', idViaje: idViaje, dni: usuarioActual.dni, nombre: usuarioActual.nombre, apellido: usuarioActual.apellido };
+    const datosReserva = { 
+        accion: 'reservar', 
+        idViaje: idViaje, 
+        dni: usuarioActual.dni, 
+        nombre: usuarioActual.nombre, 
+        apellido: usuarioActual.apellido,
+        telefono: usuarioActual.telefono 
+    };
     enviarPost(datosReserva, "¡Asiento reservado con éxito! Recordá cancelar si no vas a viajar.");
 }
 
@@ -130,7 +137,7 @@ async function cancelarReserva(idViaje) {
     }
 }
 
-// 8. Función auxiliar para enviar peticiones POST al servidor (Ataja errores de cupo)
+// 8. Peticiones POST 
 async function enviarPost(datos, mensajeExito) {
     try {
         const respuesta = await fetch(API_URL, {
@@ -139,13 +146,12 @@ async function enviarPost(datos, mensajeExito) {
         });
         const resultado = await respuesta.json();
         
-        // Verificamos qué nos respondió el backend
         if (resultado.status === "éxito") {
             alert(mensajeExito);
-            cargarViajesDesdeAPI(); // Recarga la pantalla para actualizar los botones y cupos
+            cargarViajesDesdeAPI(); 
         } else if (resultado.status === "error") {
-            alert("⚠️ " + resultado.mensaje); // Muestra el error (ej: "Se acaban de agotar los cupos")
-            cargarViajesDesdeAPI(); // Recarga para actualizar visualmente a "Sin Cupo"
+            alert("⚠️ " + resultado.mensaje); 
+            cargarViajesDesdeAPI(); 
         }
     } catch (error) {
         console.error("Error:", error);

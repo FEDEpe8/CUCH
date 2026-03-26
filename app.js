@@ -57,22 +57,49 @@ async function cargarViajesDesdeAPI() {
     }
 }
 
-// 5. Mostrar los viajes (Con botón dinámico de Cancelar o Reservar)
+// 5. Mostrar los viajes (Con límites de fechas)
 function renderizarViajes(viajes) {
     const contenedor = document.getElementById('lista-viajes');
     contenedor.innerHTML = '';
+
+    const ahora = new Date(); // Obtenemos la fecha y hora exacta de este momento
 
     viajes.forEach(viaje => {
         const card = document.createElement('div');
         card.className = 'viaje-card';
         
         let botonHTML = '';
+        let estaAbierto = true;
+        let mensajeBloqueo = "";
+
+        // Verificamos si hay fecha de INICIO y si todavía no llegamos
+        if (viaje.Inicio_Inscripcion) {
+            const fechaInicio = new Date(viaje.Inicio_Inscripcion);
+            if (ahora < fechaInicio) {
+                estaAbierto = false;
+                // Formateamos la fecha para que se lea linda en el botón
+                mensajeBloqueo = "⏳ Abre el " + fechaInicio.toLocaleDateString('es-AR', {day: 'numeric', month: 'short', hour: '2-digit', minute:'2-digit'});
+            }
+        }
+
+        // Verificamos si hay fecha de CIERRE y si ya nos pasamos
+        if (viaje.Cierre_Inscripcion) {
+            const fechaCierre = new Date(viaje.Cierre_Inscripcion);
+            if (ahora > fechaCierre) {
+                estaAbierto = false;
+                mensajeBloqueo = "🔒 Inscripción Cerrada";
+            }
+        }
         
-        // Si el estudiante ya tiene este viaje reservado, mostramos Cancelar
+        // Lógica de los botones según el estado
         if (viaje.yaReservado) {
+            // Si ya reservó, siempre le dejamos el botón de cancelar por si se arrepiente a último minuto
             botonHTML = `<button class="btn" style="background-color: #dc3545;" onclick="cancelarReserva(${viaje.ID})">❌ Cancelar Mi Reserva</button>`;
+        } else if (!estaAbierto) {
+            // Si la inscripción no está abierta (es futura o ya cerró), mostramos el botón gris desactivado
+            botonHTML = `<button class="btn" disabled>${mensajeBloqueo}</button>`;
         } else {
-            // Si no lo tiene reservado, mostramos la opción normal
+            // Si estamos dentro de la fecha, comprobamos los cupos normalmente
             const hayLugar = viaje.Cupos_Disponibles > 0;
             const textoBoton = hayLugar ? 'Reservar Asiento' : 'Sin Cupo';
             botonHTML = `<button class="btn" ${!hayLugar ? 'disabled' : ''} onclick="reservar(${viaje.ID})">${textoBoton}</button>`;

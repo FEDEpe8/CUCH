@@ -1,4 +1,4 @@
-const API_URL = "https://script.google.com/macros/s/AKfycbwjHAaoMT5lzv8V6JF-2eAI8tb7MX6nSDF5-xh9jBy9kFYyaQW9iv5m1JyY4HvHFQ4m/exec"; 
+const API_URL = "https://script.google.com/macros/s/AKfycbwP2oBTiNHc5_OQYKWWNAMFBkzk3TlrVSTtVeDa5baVvrHFYTdvb1P11XfElDCAQb_V/exec"; 
 
 // Guardamos el perfil del estudiante en memoria
 let usuarioActual = {
@@ -57,7 +57,7 @@ async function cargarViajesDesdeAPI() {
     }
 }
 
-// 5. Mostrar los viajes (Con límites de fechas)
+// 5. Mostrar los viajes (Con límites de fechas y botón dinámico)
 function renderizarViajes(viajes) {
     const contenedor = document.getElementById('lista-viajes');
     contenedor.innerHTML = '';
@@ -77,7 +77,6 @@ function renderizarViajes(viajes) {
             const fechaInicio = new Date(viaje.Inicio_Inscripcion);
             if (ahora < fechaInicio) {
                 estaAbierto = false;
-                // Formateamos la fecha para que se lea linda en el botón
                 mensajeBloqueo = "⏳ Abre el " + fechaInicio.toLocaleDateString('es-AR', {day: 'numeric', month: 'short', hour: '2-digit', minute:'2-digit'});
             }
         }
@@ -93,7 +92,7 @@ function renderizarViajes(viajes) {
         
         // Lógica de los botones según el estado
         if (viaje.yaReservado) {
-            // Si ya reservó, siempre le dejamos el botón de cancelar por si se arrepiente a último minuto
+            // Si ya reservó, siempre le dejamos el botón de cancelar por si se baja a último minuto
             botonHTML = `<button class="btn" style="background-color: #dc3545;" onclick="cancelarReserva(${viaje.ID})">❌ Cancelar Mi Reserva</button>`;
         } else if (!estaAbierto) {
             // Si la inscripción no está abierta (es futura o ya cerró), mostramos el botón gris desactivado
@@ -131,7 +130,7 @@ async function cancelarReserva(idViaje) {
     }
 }
 
-// 8. Función auxiliar para enviar peticiones POST al servidor
+// 8. Función auxiliar para enviar peticiones POST al servidor (Ataja errores de cupo)
 async function enviarPost(datos, mensajeExito) {
     try {
         const respuesta = await fetch(API_URL, {
@@ -139,9 +138,14 @@ async function enviarPost(datos, mensajeExito) {
             body: JSON.stringify(datos)
         });
         const resultado = await respuesta.json();
-        if(resultado.status === "éxito") {
+        
+        // Verificamos qué nos respondió el backend
+        if (resultado.status === "éxito") {
             alert(mensajeExito);
             cargarViajesDesdeAPI(); // Recarga la pantalla para actualizar los botones y cupos
+        } else if (resultado.status === "error") {
+            alert("⚠️ " + resultado.mensaje); // Muestra el error (ej: "Se acaban de agotar los cupos")
+            cargarViajesDesdeAPI(); // Recarga para actualizar visualmente a "Sin Cupo"
         }
     } catch (error) {
         console.error("Error:", error);

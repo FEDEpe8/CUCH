@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Transporte Estudiantil Chascomús</title>
     <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
-   <link rel="manifest" href="manifest.json">
+    <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#0056b3">
     <style>
         body { font-family: Arial, sans-serif; background-color: #f4f4f9; margin: 0; padding: 20px; }
@@ -14,8 +14,8 @@
         .viaje-card { border: 1px solid #ddd; padding: 15px; margin-bottom: 10px; border-radius: 8px; }
         .btn { background: #0056b3; color: white; border: none; padding: 10px 15px; border-radius: 5px; cursor: pointer; width: 100%; font-size: 16px; margin-top: 10px;}
         .btn:disabled { background: #ccc; cursor: not-allowed; }
-        input { width: 95%; padding: 10px; margin-bottom: 15px; border: 1px solid #ccc; border-radius: 5px; }
-        #viajes-section { display: none; } /* Se oculta hasta validar DNI */
+        input { width: 95%; padding: 10px; margin-bottom: 15px; border: 1px solid #ccc; border-radius: 5px; box-sizing: border-box; }
+        #viajes-section { display: none; } 
     </style>
 </head>
 <body>
@@ -29,7 +29,8 @@
         <input type="text" id="nombreInput" placeholder="Tu Nombre">
         <input type="text" id="apellidoInput" placeholder="Tu Apellido">
         <input type="number" id="dniInput" placeholder="Tu DNI (Ej: 40123456)">
-        <button class="btn" onclick="validarNombre_ApellidoDNI()">Ingresar</button>
+        <input type="tel" id="telefonoInput" placeholder="Tu WhatsApp (Ej: 2241555555)">
+        <button class="btn" onclick="validarDatos()">Ingresar</button>
     </div>
 
     <div id="viajes-section">

@@ -114,17 +114,30 @@ function renderizarViajes(viajes) {
     });
 }
 
-// 6. Enviar la reserva
+// 6. Enviar la reserva (Pide confirmación de domicilio)
 async function reservar(idViaje) {
+    // 1. Pedimos el domicilio con una ventana emergente
+    const domicilio = prompt("Para confirmar tu asiento, por favor ingresá tu domicilio actual:");
+
+    // 2. Si toca "Cancelar" en el cartelito o lo deja vacío, cortamos la reserva
+    if (domicilio === null || domicilio.trim() === "") {
+        alert("Reserva cancelada: Necesitamos tu domicilio para poder asignarte el viaje.");
+        return; 
+    }
+
     alert("Procesando tu reserva, por favor esperá...");
+    
+    // 3. Sumamos el domicilio al paquete de datos
     const datosReserva = { 
         accion: 'reservar', 
         idViaje: idViaje, 
         dni: usuarioActual.dni, 
         nombre: usuarioActual.nombre, 
         apellido: usuarioActual.apellido,
-        telefono: usuarioActual.telefono 
+        telefono: usuarioActual.telefono,
+        domicilio: domicilio.trim() // Lo mandamos al servidor
     };
+    
     enviarPost(datosReserva, "¡Asiento reservado con éxito! Recordá cancelar si no vas a viajar.");
 }
 

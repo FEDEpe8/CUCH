@@ -1,4 +1,4 @@
-const CACHE_NAME = 'viajes-estudiantiles-v9'; 
+const CACHE_NAME = 'viajes-estudiantiles-v10'; 
 const urlsToCache = [
   './',
   './index.html',

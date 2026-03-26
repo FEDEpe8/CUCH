@@ -1,6 +1,6 @@
 // ATENCIÓN: Cada vez que hagas un cambio en tu app.js o index.html en el futuro,
 // tenés que cambiar este número (ej: de v4 a v5) para obligar a los celulares a actualizarse.
-const CACHE_NAME = 'viajes-estudiantiles-v5'; 
+const CACHE_NAME = 'viajes-estudiantiles-v6'; 
 const urlsToCache = [
   './',
   './index.html',
